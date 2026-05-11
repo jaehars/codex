@@ -11,6 +11,9 @@ max-threads = 1
 [test-groups.core_apply_patch_cli_integration]
 max-threads = 1
 
+[test-groups.windows_process_stdio_integration]
+max-threads = 1
+
 [test-groups.windows_sandbox_legacy_sessions]
 max-threads = 1
 
@@ -38,6 +41,13 @@ test-group = 'app_server_integration'
 # sensitive to Windows runner process-startup stalls when many cases launch at once.
 filter = 'package(codex-core) & kind(test) & test(apply_patch_cli)'
 test-group = 'core_apply_patch_cli_integration'
+
+[[profile.default.overrides]]
+# These Windows-only tests all spawn Codex or Powershell child processes over
+# stdio, and the timeout-heavy failure cluster appears when they overlap.
+platform = 'cfg(windows)'
+filter = '(package(codex-exec) & test(exec_resume_)) | (package(codex-exec-server) & test(connect_stdio_command_initializes_json_rpc_client_on_windows))'
+test-group = 'windows_process_stdio_integration'
 
 [[profile.default.overrides]]
 # These tests create restricted-token Windows child processes and private desktops.
