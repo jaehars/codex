@@ -4,9 +4,9 @@ run-name: >-
     (
       github.event_name == 'workflow_dispatch' &&
       inputs.windows_x64_archive_fanout == 'true' ||
-      github.ref_name == 'starr/ci-probe-archive-6x8-20260511-full-ci'
+      github.ref_name == 'starr/ci-probe-archive-6x8-nonxl-20260511-full-ci'
     ) &&
-    ' windows-x64-archive-fanout-xl' ||
+    ' windows-x64-archive-fanout-nonxl' ||
     ''
   }}
 on:
@@ -17,7 +17,7 @@ on:
   workflow_dispatch:
     inputs:
       windows_x64_archive_fanout:
-        description: "Run the Windows x64 XL nextest archive fanout probe"
+        description: "Run the Windows x64 non-XL nextest archive fanout probe"
         required: false
         default: "false"
         type: choice
@@ -771,11 +771,11 @@ jobs:
           exit 1
 
   windows_x64_test_archive_probe:
-    name: Probe — build Windows x64 nextest archive on XL
-    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref_name == 'starr/ci-probe-archive-6x8-20260511' && inputs.windows_x64_archive_fanout == 'true') || github.ref_name == 'starr/ci-probe-archive-6x8-20260511-full-ci' }}
+    name: Probe — build Windows x64 nextest archive on non-XL
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref_name == 'starr/ci-probe-archive-6x8-nonxl-20260511' && inputs.windows_x64_archive_fanout == 'true') || github.ref_name == 'starr/ci-probe-archive-6x8-nonxl-20260511-full-ci' }}
     runs-on:
       group: codex-runners
-      labels: codex-windows-x64-xl
+      labels: codex-windows-x64
     timeout-minutes: 45
     defaults:
       run:
@@ -856,7 +856,7 @@ jobs:
   windows_x64_archive_test_probe:
     name: Probe — tests from Windows x64 archive shard ${{ matrix.shard }}/6
     needs: windows_x64_test_archive_probe
-    if: ${{ ((github.event_name == 'workflow_dispatch' && github.ref_name == 'starr/ci-probe-archive-6x8-20260511' && inputs.windows_x64_archive_fanout == 'true') || github.ref_name == 'starr/ci-probe-archive-6x8-20260511-full-ci') && needs.windows_x64_test_archive_probe.result == 'success' }}
+    if: ${{ ((github.event_name == 'workflow_dispatch' && github.ref_name == 'starr/ci-probe-archive-6x8-nonxl-20260511' && inputs.windows_x64_archive_fanout == 'true') || github.ref_name == 'starr/ci-probe-archive-6x8-nonxl-20260511-full-ci') && needs.windows_x64_test_archive_probe.result == 'success' }}
     runs-on:
       group: codex-runners
       labels: codex-windows-x64
