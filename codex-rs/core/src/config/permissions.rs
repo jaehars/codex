@@ -296,7 +296,7 @@ pub(crate) fn compile_permission_profile_selection(
     compile_permission_profile(permissions, profile_name, policy_cwd, startup_warnings)
 }
 
-fn reject_unknown_builtin_permission_profile(profile_name: &str) -> io::Result<()> {
+pub(crate) fn reject_unknown_builtin_permission_profile(profile_name: &str) -> io::Result<()> {
     if profile_name.starts_with(':') {
         return Err(io::Error::new(
             io::ErrorKind::InvalidInput,

@@ -144,6 +144,8 @@ pub use codex_sandboxing::system_bwrap_warning;
 pub use managed_features::ManagedFeatures;
 pub use network_proxy_spec::NetworkProxySpec;
 pub use network_proxy_spec::StartedNetworkProxy;
+pub(crate) use permissions::is_builtin_permission_profile_name;
+pub(crate) use permissions::reject_unknown_builtin_permission_profile;
 pub(crate) use permissions::resolve_permission_profile;
 
 const DEFAULT_IGNORE_LARGE_UNTRACKED_DIRS: i64 = 200;
