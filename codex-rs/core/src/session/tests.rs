@@ -5,7 +5,6 @@ use crate::config::test_config;
 use crate::context::ContextualUserFragment;
 use crate::context::TurnAborted;
 use crate::context::UserShellCommand;
-use crate::exec::ExecCapturePolicy;
 use crate::function_tool::FunctionCallError;
 use crate::shell::default_user_shell;
 use crate::skills::SkillRenderSideEffects;
