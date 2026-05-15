@@ -3809,6 +3809,7 @@ async fn active_profile_update_rebuilds_network_proxy_config() -> std::io::Resul
             (
                 "locked-down".to_string(),
                 PermissionProfileToml {
+                    workspace_roots: None,
                     filesystem: Some(FilesystemPermissionsToml {
                         glob_scan_max_depth: None,
                         entries: std::collections::BTreeMap::from([(
@@ -3822,6 +3823,7 @@ async fn active_profile_update_rebuilds_network_proxy_config() -> std::io::Resul
             (
                 "web-enabled".to_string(),
                 PermissionProfileToml {
+                    workspace_roots: None,
                     filesystem: Some(FilesystemPermissionsToml {
                         glob_scan_max_depth: None,
                         entries: std::collections::BTreeMap::from([(
@@ -3884,7 +3886,7 @@ async fn active_profile_update_rebuilds_network_proxy_config() -> std::io::Resul
 
     let updated = session_configuration
         .apply(&SessionSettingsUpdate {
-            permission_profile: Some(selected_config.permissions.permission_profile()),
+            permission_profile: Some(selected_config.permissions.permission_profile().clone()),
             active_permission_profile: selected_config.permissions.active_permission_profile(),
             ..Default::default()
         })
