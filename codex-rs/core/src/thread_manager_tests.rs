@@ -1,5 +1,6 @@
 use super::*;
 use crate::config::test_config;
+use crate::context::ContextualUserFragment;
 use crate::init_state_db;
 use crate::installation_id::INSTALLATION_ID_FILENAME;
 use crate::rollout::RolloutRecorder;
@@ -22,7 +23,6 @@ use codex_protocol::protocol::SessionSource;
 use codex_protocol::protocol::ThreadSource;
 use codex_protocol::protocol::TurnStartedEvent;
 use codex_protocol::protocol::UserMessageEvent;
-use codex_protocol::user_input::UserInput;
 use core_test_support::PathBufExt;
 use core_test_support::PathExt;
 use core_test_support::responses::mount_models_once;
@@ -383,40 +383,38 @@ args = ["dev", "cd /tmp && true"]
         vec!["dev".to_string(), "local".to_string()]
     );
 
-    let manager = ThreadManager::with_models_provider_and_home_for_tests(
-        CodexAuth::from_api_key("dummy"),
-        config.model_provider.clone(),
-        config.codex_home.to_path_buf(),
-        environment_manager,
-    );
-
-    let thread = manager
-        .start_thread(config)
-        .await
-        .expect("thread should start");
-
-    let prompt_items = crate::prompt_debug::build_prompt_input_from_session(
-        thread.thread.codex.session.as_ref(),
-        Vec::<UserInput>::new(),
+    let environments = crate::environment_selection::resolve_environment_selections(
+        environment_manager.as_ref(),
+        &crate::environment_selection::default_thread_environment_selections(
+            environment_manager.as_ref(),
+            &config.cwd,
+        ),
     )
-    .await
-    .expect("prompt input");
-    let environment_context = prompt_items
-        .iter()
-        .filter_map(|item| match item {
-            ResponseItem::Message { content, .. } => Some(content),
-            _ => None,
-        })
-        .flatten()
-        .find_map(|content| match content {
-            ContentItem::InputText { text } if text.contains("<environment_context>") => {
-                Some(text.as_str())
-            }
-            _ => None,
-        })
-        .expect("environment context prompt item");
+    .expect("default environment selections");
+    let shell = crate::shell::default_user_shell();
+    let environment_context = crate::context::EnvironmentContext::new(
+        environments
+            .turn_environments
+            .iter()
+            .map(
+                |environment| crate::context::EnvironmentContextEnvironment {
+                    id: environment.environment_id.clone(),
+                    cwd: environment.cwd.clone(),
+                    shell: environment
+                        .shell
+                        .clone()
+                        .unwrap_or_else(|| shell.name().to_string()),
+                },
+            )
+            .collect(),
+        /*current_date*/ None,
+        /*timezone*/ None,
+        /*network*/ None,
+        /*subagents*/ None,
+    )
+    .render();
     assert!(environment_context.contains("<environments>"));
-    let cwd = thread.session_configured.cwd.display().to_string();
+    let cwd = config.cwd.display().to_string();
     let dev_entry = format!(
         r#"<environment id="dev">
       <cwd>{cwd}</cwd>

@@ -37,6 +37,8 @@ pub(crate) use collaboration_mode_instructions::CollaborationModeInstructions;
 pub(crate) use contextual_user_message::is_contextual_user_fragment;
 pub(crate) use contextual_user_message::parse_visible_hook_prompt_message;
 pub(crate) use environment_context::EnvironmentContext;
+#[cfg(test)]
+pub(crate) use environment_context::EnvironmentContextEnvironment;
 pub use fragment::ContextualUserFragment;
 pub(crate) use fragment::FragmentRegistration;
 pub(crate) use fragment::FragmentRegistrationProxy;
