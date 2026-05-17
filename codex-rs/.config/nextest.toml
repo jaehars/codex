@@ -3,7 +3,7 @@
 slow-timeout = { period = "15s", terminate-after = 2 }
 # Full CI has a broad Windows process-startup timeout storm when nextest uses every runner core.
 # Keep enough parallelism for throughput without overwhelming the slowest Windows lanes.
-test-threads = 4
+test-threads = 2
 
 [test-groups.app_server_protocol_codegen]
 max-threads = 1
