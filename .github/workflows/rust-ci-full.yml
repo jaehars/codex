@@ -656,8 +656,16 @@ jobs:
 
       - uses: taiki-e/install-action@44c6d64aa62cd779e873306675c7a58e86d6d532 # v2.62.49
         with:
-          tool: nextest
-          version: 0.9.103
+          tool: nextest@0.9.136
+
+      - name: Create nextest recording config
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p nextest-ci
+          printf '[experimental]\nrecord = true\n\n[record]\nenabled = true\n' \
+            > nextest-ci/config.toml
+          cat nextest-ci/config.toml
 
       - name: Enable unprivileged user namespaces (Linux)
         if: runner.os == 'Linux'
@@ -682,11 +690,37 @@ jobs:
 
       - name: tests
         id: test
-        run: cargo nextest run --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test --timings
+        run: cargo nextest run --no-fail-fast --target ${{ matrix.target }} --cargo-profile ci-test --timings --user-config-file nextest-ci/config.toml
         env:
           RUST_BACKTRACE: 1
           RUST_MIN_STACK: "8388608" # 8 MiB
           NEXTEST_STATUS_LEVEL: leak
+
+      - name: Export nextest recording
+        if: "!cancelled()"
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo nextest store export latest \
+            --user-config-file nextest-ci/config.toml \
+            --archive-file nextest-ci/nextest-run-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}.zip
+
+      - name: Upload nextest JUnit report
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: nextest-junit-rust-ci-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}
+          path: codex-rs/target/nextest/default/junit.xml
+          if-no-files-found: warn
+
+      - name: Upload portable nextest recording
+        if: "!cancelled()"
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: nextest-recording-rust-ci-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}
+          path: codex-rs/nextest-ci/nextest-run-${{ matrix.runner }}-${{ matrix.target }}-${{ matrix.profile }}.zip
+          archive: false
+          if-no-files-found: warn
 
       - name: Upload Cargo timings (nextest)
         if: always()
