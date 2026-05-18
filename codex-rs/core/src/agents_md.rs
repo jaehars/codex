@@ -94,17 +94,19 @@ impl<'a> AgentsMdManager<'a> {
         None
     }
 
-    pub(crate) async fn user_instructions_with_warnings(
+    /// Combines configured user instructions and AGENTS.md content into a
+    /// single model-visible instruction string.
+    pub(crate) async fn user_instructions(
         &self,
         environment: Option<&Environment>,
         startup_warnings: &mut Vec<String>,
     ) -> Option<String> {
         let fs = environment?.get_filesystem();
-        self.user_instructions_with_fs_and_warnings(fs.as_ref(), startup_warnings)
+        self.user_instructions_with_fs(fs.as_ref(), startup_warnings)
             .await
     }
 
-    async fn user_instructions_with_fs_and_warnings(
+    async fn user_instructions_with_fs(
         &self,
         fs: &dyn ExecutorFileSystem,
         startup_warnings: &mut Vec<String>,
