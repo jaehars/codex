@@ -69,6 +69,8 @@ impl<'a> AgentsMdManager<'a> {
                 continue;
             }
 
+            // Missing global instruction files are ignored above; read or UTF-8 decode
+            // failures from an existing file should be visible to the user.
             let contents = match std::fs::read_to_string(&path) {
                 Ok(contents) => contents,
                 Err(err) => {
