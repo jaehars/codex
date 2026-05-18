@@ -69,26 +69,20 @@ impl<'a> AgentsMdManager<'a> {
                 continue;
             }
 
-            // Missing global instruction files are ignored above; read or UTF-8 decode
-            // failures from an existing file should be visible to the user.
-            let contents = match std::fs::read_to_string(&path) {
-                Ok(contents) => contents,
+            // Missing global instruction files are ignored above; read failures
+            // from an existing file should be visible to the user.
+            let data = match std::fs::read(&path) {
+                Ok(data) => data,
                 Err(err) => {
-                    let message = if err.kind() == io::ErrorKind::InvalidData {
-                        format!(
-                            "Failed to read global AGENTS.md instructions from `{}`: {err}. The file must be valid UTF-8.",
-                            path.display()
-                        )
-                    } else {
-                        format!(
-                            "Failed to read global AGENTS.md instructions from `{}`: {err}",
-                            path.display()
-                        )
-                    };
-                    startup_warnings.push(message);
+                    startup_warnings.push(format!(
+                        "Failed to read global AGENTS.md instructions from `{}`: {err}",
+                        path.display()
+                    ));
                     continue;
                 }
             };
+            warn_invalid_utf8(&path, &data, "Global", startup_warnings);
+            let contents = String::from_utf8_lossy(&data).to_string();
             let trimmed = contents.trim();
             if !trimmed.is_empty() {
                 return Some(LoadedAgentsMd {
@@ -210,12 +204,7 @@ impl<'a> AgentsMdManager<'a> {
                 Err(err) if err.kind() == io::ErrorKind::NotFound => continue,
                 Err(err) => return Err(err),
             };
-            if let Err(err) = std::str::from_utf8(&data) {
-                startup_warnings.push(format!(
-                    "Project AGENTS.md instructions from `{}` contain invalid UTF-8: {err}. Invalid byte sequences were replaced.",
-                    p.display()
-                ));
-            }
+            warn_invalid_utf8(&p, &data, "Project", startup_warnings);
 
             let size = data.len() as u64;
             if size > remaining {
@@ -356,6 +345,20 @@ impl<'a> AgentsMdManager<'a> {
             }
         }
         names
+    }
+}
+
+fn warn_invalid_utf8(
+    path: &AbsolutePathBuf,
+    data: &[u8],
+    source: &str,
+    startup_warnings: &mut Vec<String>,
+) {
+    if let Err(err) = std::str::from_utf8(data) {
+        startup_warnings.push(format!(
+            "{source} AGENTS.md instructions from `{}` contain invalid UTF-8: {err}. Invalid byte sequences were replaced.",
+            path.display()
+        ));
     }
 }
 
