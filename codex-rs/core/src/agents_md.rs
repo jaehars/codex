@@ -82,7 +82,7 @@ impl<'a> AgentsMdManager<'a> {
                 }
             };
             warn_invalid_utf8(&path, &data, "Global", startup_warnings);
-            let contents = String::from_utf8_lossy(&data).to_string();
+            let contents = String::from_utf8_lossy(&data);
             let trimmed = contents.trim();
             if !trimmed.is_empty() {
                 return Some(LoadedAgentsMd {
